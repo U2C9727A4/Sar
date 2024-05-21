@@ -43,9 +43,12 @@ int get_blocks(FILE *input_file, size_t start_at, uint64_t uint64_array[4])
     // data_start at index 3 and data_end at index 4.
     // This function reads 4 uint64_t's from the input_file at start_at
     // and saves it in uint64_array as described above.
+    // Restores file seek number, thus dosen't change the inital value of it.
 
+    uint64_t before_seek = ftell(input_file);
     fseek(input_file, start_at, SEEK_SET);
     fread(uint64_array, sizeof(uint64_t), 4, input_file);
+    fseek(input_file, before_seek, SEEK_SET);
 
     return 0;
 }
