@@ -65,6 +65,7 @@ char* read_metadata(uint64_t blocks[4], FILE* input_file)
    if ((fread(output, (blocks[1] - blocks[0]), 1, input_file)) != 0)
    {
     free(output);
+    fseek(input_file, oldSeek, SEEK_SET);
     return NULL;
    }
   fseek(input_file, oldSeek, SEEK_SET);
