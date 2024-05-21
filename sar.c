@@ -53,6 +53,27 @@ int get_blocks(FILE *input_file, size_t start_at, uint64_t uint64_array[4])
     return 0;
 }
 
+char* read_metadata(uint64_t blocks[4], FILE* input_file)
+{
+  /*
+    WARNING! This function returns a heap-allocated string. If this function fails, it returns NULL and frees output.
+    If it dosen't fail, the string it returns must be freed by the scope calling the function.
+    This function reads metadata from the archive, returns a char* (Which is the entire metadata and split() must be used to make sense of it.)*/
+  uint64_t oldSeek = ftell(input_file);
+  fseek(input_file, blocks[0], SEEK_SET);
+  char* output = malloc(blocks[1] - blocks[0]);
+   if ((fread(output, (blocks[1] - blocks[0]), 1, input_file)) != 0)
+   {
+    free(output);
+    return NULL;
+   }
+  fseek(input_file, oldSeek, SEEK_SET);
+  return output;
+
+}
+
+
+
 char** split(char *input, short* element_ptr, const char* seperator)
 {
   /*
