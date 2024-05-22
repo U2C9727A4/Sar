@@ -58,7 +58,7 @@ int get_blocks(FILE *input_file, size_t start_at, uint64_t uint64_array[4])
     return 0;
 }
 
-char** read_metadata(uint64_t blocks[4], FILE* input_file)
+char* read_metadata(uint64_t blocks[4], FILE* input_file)
 {
   /*
     WARNING! This function returns a heap-allocated string. If this function fails, it returns NULL and frees output.
