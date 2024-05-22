@@ -148,7 +148,7 @@ int write_metadata(const FILE* output_file, const char* filepath)
   int elements;
   char** file_name_raw = split(filepath, &elements, "/");
   char* file_name = strdup(file_name_raw[elements]);
-  free_string_arr(file_name_raw);
+  free_string_arr(file_name_raw, elements);
   uint64_t metadata_size = sizeof(file_name) + sizeof(file_perms) + 512; // The +512 is for the trailing hash
   char* metadata = malloc(metadata_size);
   sprintf(metadata, "%s\n%s", file_name, file_perms);
