@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 /* Archive Stucture
 
@@ -29,7 +30,8 @@ third is data start, fourth is data end.
 /* Metadata structure
 
 Metadata is a simple char*. The first line is file name,
-second is file data checksum. (Checksum of the data itself, not the archive.)
+second is file permissions
+the very last is file data checksum. (Checksum of the data itself, not the archive.)
 
 !! More lines can be added for more info as desired.
 
@@ -92,13 +94,22 @@ char* read_file_perms(const char* file_path)
  return permissions;
 }
 
-
+void free_string_arr(char** array, int elements)
+{
+    // Frees arrays made by split().
+    int i = 0;
+    for (i = 0; elements > i; i++)
+    {
+      free(array[i]);
+    }
+    free(array);
+}
 
 char** split(char *input, short* element_ptr, const char* seperator)
 {
   /*
     This function takes in a string, splits it based on seperator and returns as a string array (char**).
-    !! The inputted string must be null terminated.
+    !! The inputted string must be null terminated.4
   */
   short iterations = 0;
   short elements = 0;
@@ -125,4 +136,26 @@ char** split(char *input, short* element_ptr, const char* seperator)
   free(input_string);
 
   return result;
+}
+
+int write_metadata(const FILE* output_file, const char* filepath)
+{
+  // Writes file metadata of filepath to output_file
+  // Assumes the current file pointer is the next archive file to write on, so it skips over first 4 sizeof(uint64_t) bytes
+  // IMPORTANT NOTE Leaves an extra 512 bytes of space at the end of metadata, for writing data hash later on.
+  fseek(output_file, (4 * sizeof(uint64_t)), SEEK_CUR);
+  char* file_perms = read_file_perms(filepath);
+  int elements;
+  char** file_name_raw = split(filepath, &elements, "/");
+  char* file_name = strdup(file_name_raw[elements]);
+  free_string_arr(file_name_raw);
+  uint64_t metadata_size = sizeof(file_name) + sizeof(file_perms) + 512; // The +512 is for the trailing hash
+  char* metadata;
+  sprintf(metadata, "%s\n%s", file_name, file_perms);
+  // Assume the file pointer is currently at the correct location to start writing metadata
+  fwrite(&metadata, metadata_size, 1, output_file);
+  
+  free(file_name);
+  return 0;
+
 }
