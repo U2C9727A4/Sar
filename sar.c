@@ -150,11 +150,12 @@ int write_metadata(const FILE* output_file, const char* filepath)
   char* file_name = strdup(file_name_raw[elements]);
   free_string_arr(file_name_raw);
   uint64_t metadata_size = sizeof(file_name) + sizeof(file_perms) + 512; // The +512 is for the trailing hash
-  char* metadata;
+  char* metadata = malloc(metadata_size);
   sprintf(metadata, "%s\n%s", file_name, file_perms);
   // Assume the file pointer is currently at the correct location to start writing metadata
-  fwrite(&metadata, metadata_size, 1, output_file);
-  
+  fwrite(metadata, metadata_size, 1, output_file);
+
+  free(metadata);
   free(file_name);
   return 0;
 
