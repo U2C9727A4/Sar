@@ -42,6 +42,7 @@ the very last is file data checksum. (Checksum of the data itself, not the archi
 int get_blocks(FILE *input_file, size_t start_at, uint64_t uint64_array[4])
 {
     // Assumes file is open
+    // Assumes it is at the correct place to start reading archive metadata.
     // Returns meta_start at index 0, meta_end at index 1,
     // data_start at index 3 and data_end at index 4.
     // This function reads 4 uint64_t's from the input_file at start_at
@@ -138,20 +139,26 @@ char** split(char *input, short* element_ptr, const char* seperator)
   return result;
 }
 
-int write_metadata(const FILE* output_file, const char* filepath)
+int write_metadata(FILE* output_file, const char* filepath)
 {
   // Writes file metadata of filepath to output_file
   // Assumes the current file pointer is the next archive file to write on, so it skips over first 4 sizeof(uint64_t) bytes
   // IMPORTANT NOTE Leaves an extra 512 bytes of space at the end of metadata, for writing data hash later on.
+  uint64_t blocks[4];
+  get_blocks(output_file, ftell(output_file), blocks);
   fseek(output_file, (4 * sizeof(uint64_t)), SEEK_CUR);
+  blocks[0] = ftell(output_file); // Write start of metadata
+
   char* file_perms = read_file_perms(filepath);
   int elements;
   char** file_name_raw = split(filepath, &elements, "/");
   char* file_name = strdup(file_name_raw[elements]);
+
   free_string_arr(file_name_raw, elements);
   uint64_t metadata_size = sizeof(file_name) + sizeof(file_perms) + 512; // The +512 is for the trailing hash
   char* metadata = malloc(metadata_size);
-  sprintf(metadata, "%s\n%s", file_name, file_perms);
+  blocks[1] = metadata_size; // Write end of metadata block to archive metadata
+  sprintf(metadata, "%s\n%s\n", file_name, file_perms);
   // Assume the file pointer is currently at the correct location to start writing metadata
   fwrite(metadata, metadata_size, 1, output_file);
 
@@ -159,4 +166,12 @@ int write_metadata(const FILE* output_file, const char* filepath)
   free(file_name);
   return 0;
 
+}
+int write_data()
+{
+  /*
+  Takes in file_input, writes its data to archive. Also sets the required bytes and stuff
+  */
+
+  return 0;
 }
